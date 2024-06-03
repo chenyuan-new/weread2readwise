@@ -1,3 +1,5 @@
-# WXT + React
+# 微信读书笔记同步至readwise插件
 
-This template should help get you started developing with React in WXT.
+基于[wxt](https://wxt.dev/)实现
+
+大量参考了[wereadwise](https://github.com/fuergaosi233/wereadwise)项目 salute！
