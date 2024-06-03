@@ -1,3 +1,108 @@
+export interface IBookmarkUpdated {
+  bookId: string;
+  style: number;
+  bookVersion: number;
+  range: string;
+  markText: string;
+  type: number;
+  chapterUid: number;
+  createTime: number;
+  bookmarkId: string;
+  chapterName?: string;
+}
+
+export interface IBookmarkChapter {
+  bookId: string;
+  chapterUid: number;
+  chapterIdx: number;
+  title: string;
+}
+
+export interface IBookmarkBook {
+  bookId: string;
+  version: number;
+  format: string;
+  soldout: number;
+  bookStatus: number;
+  cover: string;
+  title: string;
+  author: string;
+}
+
+export interface IReviews {
+  synckey: number;
+  totalCount: number;
+  reviews: IReview[];
+  removed: any[];
+  atUsers: any[];
+  refUsers: any[];
+  columns: any[];
+  hasMore: number;
+}
+
+export interface IReview {
+  reviewId: string;
+  review: {
+    type: number;
+    bookId: string;
+    chapterUid: number;
+    content: string;
+    bookVersion: number;
+    isPrivate: number;
+    abstract: string;
+    range: string;
+    reviewId: string;
+    userVid: number;
+    topics: any[];
+    createTime: number;
+    isLike: number;
+    isReposted: number;
+    book: IBook;
+    chapterIdx: number;
+    chapterTitle: string;
+    author: IAuthor;
+  };
+}
+
+export interface IBook {
+  bookId: string;
+  format: string;
+  version: number;
+  soldout: number;
+  bookStatus: number;
+  type: number;
+  cover: string;
+  title: string;
+  author: string;
+  translator?: string;
+  payType: number;
+}
+
+export interface IAuthor {
+  userVid: number;
+  name: string;
+  avatar: string;
+  isFollowing: number;
+  isFollower: number;
+  isBlacking: number;
+  isBlackBy: number;
+  isHide: number;
+  nick: string;
+  isV: number;
+  roleTags: any[];
+  followPromote: string;
+  signature: string;
+}
+
+export interface IBookmarkRootObject {
+  synckey: number;
+  updated: IBookmarkUpdated[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  removed: any[];
+  chapters: IBookmarkChapter[];
+  book: IBookmarkBook;
+}
+
 export interface WEreadDataInfo {
   OS: string;
   platform: string;
@@ -19,6 +124,7 @@ export interface WEreadDataInfo {
   sState: SState;
   route: Route;
   shelf: WEreadDataInfoShelf;
+  reader: WEreadDataInfoReader;
 }
 
 export interface Route {
@@ -36,13 +142,33 @@ export interface Meta {}
 
 export interface SState {
   user: SStateUser;
-  shelf: SStateShelf;
+  shelf?: SStateShelf;
+  /**
+   * 这里的reader里的bookId不一定对，不要用sState里的
+   * TODO: 找一下原因
+   */
+  reader?: SStateReader;
 }
 
 export interface SStateShelf {
   books: any[];
 }
 
+export interface SStateReader {
+  bookId: string;
+  bookInfo: {
+    bookId: string;
+    title: string;
+    author: string;
+    cover: string;
+    format: "epub" | string;
+    price: number;
+    updateTime: number;
+    publisher: string;
+    star: number;
+    ratingCount: number;
+  };
+}
 export interface SStateUser {
   vid: Vid;
   avatar: string;
@@ -67,6 +193,10 @@ export interface WEreadDataInfoShelf {
   rawIndexes: Index[];
   shelfIndexes: Index[];
   updatedBooks: any[];
+}
+
+export interface WEreadDataInfoReader {
+  bookId: string;
 }
 
 export interface BooksAndArchive {
