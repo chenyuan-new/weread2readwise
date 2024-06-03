@@ -254,7 +254,7 @@ export const syncCurrentBook = async ({
       };
     });
     allHighlights = uniqBy(reviewHighlights.concat(markHighlights), "text");
-    setBookCount(allHighlights.length);
+    setCommentCount(allHighlights.length);
     setStage(
       `Try to get all bookmarks from weread, ${book.title} ${allHighlights.length}`
     );
