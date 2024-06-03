@@ -50,7 +50,7 @@ export const checkIsBookPage = async (): Promise<boolean> => {
   const url = (
     await browser.tabs.query({ active: true, currentWindow: true })
   )[0].url;
-  if (!url || !url.include("https://weread.qq.com/web/reader/")) {
+  if (!url || !url.includes("https://weread.qq.com/web/reader/")) {
     return false;
   }
   return true;
@@ -202,12 +202,12 @@ export const SyncAllData = async ({
 export const syncCurrentBook = async ({
   accessToken,
   setStage,
-  setBookCount,
+  setCommentCount,
   setStatus,
 }: {
   accessToken: string;
   setStage: (stage: string) => void;
-  setBookCount: (pageCount: number) => void;
+  setCommentCount: (pageCount: number) => void;
   setStatus: (status: boolean) => void;
 }): Promise<void> => {
   setStage("Try to get all infos from weread");

@@ -5,6 +5,7 @@ import {
   setReadwiseAccessToken,
   syncCurrentBook,
   verifyAccessTokenOfReadwise,
+  checkIsBookPage,
 } from "./utils";
 import { useEffect, useRef, useState } from "react";
 
@@ -37,7 +38,7 @@ const WeReadItem = ({
             className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded"
             onClick={login}
           >
-            Login
+            登录
           </button>
           <button
             type="button"
@@ -45,7 +46,7 @@ const WeReadItem = ({
             className="bg-blue-500 hover:bg-blue-700 text-white  py-2 px-4 rounded  ml-auto"
             onClick={onRecheck}
           >
-            Recheck
+            重新检查
           </button>
         </>
       )}
@@ -79,23 +80,23 @@ const ReadwiseItem = ({
             className="bg-blue-500 hover:bg-blue-700 text-white  py-2 px-4 rounded text-base"
             onClick={resetToken}
           >
-            reset access token
+            重置access token
           </button>
         </>
       ) : (
-        <div className="flex items-start">
+        <div className="flex items-start flex-1">
           <p className="text-gray-600 mr-5">{title}:</p>
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-2 flex-1">
             <button
               type="button"
-              className="bg-blue-500 hover:bg-blue-700 text-white  py-2 px-4 rounded text-base"
+              className="bg-blue-500 hover:bg-blue-700 text-white  py-2 px-4 rounded text-base w-auto"
               onClick={login}
             >
-              get your access token
+              获取access token
             </button>
             <section className="flex items-center gap-1">
               <input
-                className="h-10 caret-blue-500 focus:caret-indigo-500"
+                className="h-10 caret-blue-500 focus:caret-indigo-500 flex-1"
                 onChange={(e) => {
                   accessTokenRef.current = e.target.value;
                 }}
@@ -116,7 +117,7 @@ const ReadwiseItem = ({
                   onRecheck();
                 }}
               >
-                enter
+                确认
               </button>
             </section>
             {!!statusText && <p className="text-red-600">{statusText}</p>}
@@ -131,13 +132,15 @@ const ReadwiseItem = ({
 const SyncButton = ({
   readwiseAccessToken,
   weReadUsername,
+  isBookPage,
 }: {
   readwiseAccessToken: string;
   weReadUsername: string;
+  isBookPage: boolean;
 }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [stage, setStage] = useState("");
-  const [bookCount, setBookCount] = useState(0);
+  const [commentCount, setCommentCount] = useState(0);
   const [status, setStatus] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const startSync = async (): Promise<void> => {
@@ -146,10 +149,9 @@ const SyncButton = ({
       await syncCurrentBook({
         accessToken: readwiseAccessToken,
         setStage,
-        setBookCount,
+        setCommentCount,
         setStatus,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       setErrorMessage(error.message);
     } finally {
@@ -161,9 +163,9 @@ const SyncButton = ({
       return (
         <div className="flex flex-col items-center">
           {/* Display beautiful green success message */}
-          <span className="text-green-600">Success! </span>
+          <span className="text-green-600">导入成功! </span>
           {/* Disply import book count */}
-          <span className="text-green-600">Import {bookCount} books!</span>
+          <span className="text-green-600">导入 {commentCount} 条笔记!</span>
         </div>
       );
     case isSyncing:
@@ -186,21 +188,21 @@ const SyncButton = ({
             mb-2
           "
             >
-              Please don&#39;t close this page
+              请不要关闭此页面
             </strong>
           </p>
-          <strong>Syncing...</strong>
+          <strong>同步中...</strong>
           <p className="text-gray-600 mb-5">
-            <strong className="mr-auto">Stage:</strong>
+            <strong className="mr-auto">阶段:</strong>
             <span className="ml-auto"> {stage} </span>
           </p>
           <p className="text-gray-600 mb-5">
-            <strong className="mr-auto">Book Count:</strong>{" "}
-            <span className="ml-auto"> {bookCount}</span>
+            <strong className="mr-auto">笔记数量:</strong>{" "}
+            <span className="ml-auto"> {commentCount}</span>
           </p>
           {errorMessage && (
             <p className="text-gray-600 mb-5">
-              <strong className="mr-auto">Error:</strong>
+              <strong className="mr-auto">错误:</strong>
               <span className="ml-auto"> {errorMessage}</span>
             </p>
           )}
@@ -208,15 +210,22 @@ const SyncButton = ({
       );
     case !readwiseAccessToken || !weReadUsername:
       return <></>;
+    case !isBookPage:
+      return (
+        <p>
+          本插件目前只能在某本书的阅读页使用，页面链接类似:
+          https://weread.qq.com/web/reader/xxxxx
+        </p>
+      );
     default:
       return (
         <button
           type="button"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           disabled={!readwiseAccessToken || !weReadUsername}
           onClick={startSync}
         >
-          🚀 Start Sync
+          🚀 一键同步
         </button>
       );
   }
@@ -227,6 +236,7 @@ const Popup = () => {
   const [wxReedCookies, setWxReedCookies] = useState<Cookies.Cookie[] | null>(
     null
   );
+  const [isBookPage, setIsBookPage] = useState(false);
   const [weReedUsername, setWeReedUsername] = useState("");
   const updateReadWiseToken = async (): Promise<void> => {
     const token = await getAndCheckReadwiseAccessToken();
@@ -245,10 +255,15 @@ const Popup = () => {
     const cookies = await getWeReadCookies();
     setWxReedCookies(cookies);
   };
+  const updateIsBookPage = async (): Promise<void> => {
+    const isBookPage = await checkIsBookPage();
+    setIsBookPage(isBookPage);
+  };
   // Init data
   useEffect(() => {
     updateReadWiseToken();
     updateWeReedAuthInfo();
+    updateIsBookPage();
   }, []);
   useEffect(() => {
     if (wxReedCookies) {
@@ -258,25 +273,29 @@ const Popup = () => {
   // Automatic redetection every 1s
 
   return (
-    <section id="popup" className="w-96">
+    <section id="popup" className="w-[450px]">
       <div className="container mx-auto bg-gray-200 rounded-xl shadow border p-8">
         <h2 className="text-2xl text-gray-700 font-bold mb-5">
-          WeRead 2 Readwise
+          readwise微信读书笔记同步
         </h2>
         <p className="text-gray-600 mb-5 text-base">
-          This extension will help you to sync your reading highlight from
-          WeRead to Readwise.
+          此插件将帮助您将微信读书笔记同步到readwise，目前近支持在某本书的页面进行同步，一次只能同步一本书的笔记。
         </p>
         <p className="text-gray-600 mb-5 text-lg">
-          <strong>Step 1:</strong> Login to WeRead; Login Readwise and generate
-          a AccecssToken.
+          <strong>1: </strong>
+          登录微信读书
         </p>
         <p className="text-gray-600 mb-5 text-lg">
-          <strong>Step 2:</strong> Click the button below to start syncing.
+          <strong>2: </strong>
+          获取readwise access token
+        </p>
+        <p className="text-gray-600 mb-5 text-lg">
+          <strong>3: </strong>
+          点击同步按钮开始同步
         </p>
         {/* Display WeRead Status and add recheck button */}
         <WeReadItem
-          title="WeRead"
+          title="微信读书"
           status={!!weReedUsername}
           onRecheck={updateWeReedAuthInfo}
           login={loginWeReed}
@@ -294,6 +313,7 @@ const Popup = () => {
           <SyncButton
             readwiseAccessToken={ReadWiseToken}
             weReadUsername={weReedUsername}
+            isBookPage={isBookPage}
           />
         </div>
       </div>
